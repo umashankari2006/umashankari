@@ -1,0 +1,74 @@
+1. Data Preprocessing & Model Training (train_model.py)
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+import joblib
+
+# Simulated dataset
+data = pd.DataFrame({
+    'fever': [1, 0, 1, 0, 1, 1, 0],
+    'cough': [1, 0, 1, 1, 0, 1, 0],
+    'fatigue': [1, 1, 0, 0, 1, 0, 0],
+    'has_disease': [1, 0, 1, 0, 1, 1, 0]
+})
+
+X = data[['fever', 'cough', 'fatigue']]
+y = data['has_disease']
+
+model = LogisticRegression()
+model.fit(X, y)
+
+# Save model
+joblib.dump(model, 'health_model.pkl')
+
+
+---
+
+2. Flask Backend API (app.py)
+
+from flask import Flask, request, jsonify, render_template
+import joblib
+import numpy as np
+
+app = Flask(_name_)
+model = joblib.load('health_model.pkl')
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    fever = int(request.form['fever'])
+    cough = int(request.form['cough'])
+    fatigue = int(request.form['fatigue'])
+
+    features = np.array([[fever, cough, fatigue]])
+    prediction = model.predict(features)[0]
+    return render_template('index.html', prediction_text=f"Risk Prediction: {'Yes' if prediction else 'No'}")
+
+if _name_ == '_main_':
+    app.run(debug=True)
+
+
+---
+
+3. HTML Interface (templates/index.html)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Health Sentinel</title>
+</head>
+<body>
+    <h2>Disease Risk Predictor</h2>
+    <form method="POST" action="/predict">
+        Fever (1/0): <input type="text" name="fever"><br>
+        Cough (1/0): <input type="text" name="cough"><br>
+        Fatigue (1/0): <input type="text" name="fatigue"><br>
+        <input type="submit" value="Predict">
+    </form>
+    <h3>{{ prediction_text }}</h3>
+</body>
+</html>
